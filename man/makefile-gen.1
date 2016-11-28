@@ -1,0 +1,32 @@
+.TH MAKEFILE-GEN "1" "November 2016" "User Commands" "User Commands"
+.SH NAME
+makefile-gen \- generate C/C++ Makefiles
+.SH SYNOPSIS
+.B makefile-gen [options]
+.TP
+.SH DESCRIPTION
+.PP
+Generate your makefile for your C/C++ projects
+Options for this command allow you to change configuration of the Makefile, and the command is callable each time you add sources or want to change compilation flags
+.TP
+\fB-o, --output Name\fR
+Choose output name. default is \(aqprogram\(aq
+.TP
+\fB-f, --flags {FLAG1,FLAG2,..,FLAG..}\fR
+Custom flags to add to compilation.
+.TP
+\fB-l, --library PATH\fR
+Choose library path. Default is found automaticly.
+.TP
+\fB-r, --[no-]restrictive\fR
+Add restrictive flags.
+.TP
+\fB-t, --type [lib, executable]\fR
+Select output type (lib/executable)
+.TP
+\fB-h, --help\fR
+Display help message
+.TP
+.PP
+.SH AUTHOR
+.B Created by Paul Montague
