@@ -17,7 +17,7 @@ class ParseArgs
     options.libPath = ""
     
     opt_parser = OptionParser.new do |opts|
-      opts.banner = "Usage: makefile-gen.rb [options]"
+      opts.banner = "Usage: makefile-gen [options]"
 
       opts.separator ""
       opts.separator "Options:"
