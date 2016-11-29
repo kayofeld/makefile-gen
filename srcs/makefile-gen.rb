@@ -136,7 +136,7 @@ def write_makefile(options, parsed_folder)
     text << "#{compile_flag_name} = -I#{libPath}\n"
   end
   options.flags.each do |flag|
-    text << "#{compile_flag_name} += #{flag}\n" 
+    text << "#{compile_flag_name} += -#{flag}\n" 
   end
   text << "#{compile_flag_name} += -W -Wall -Wextra\n"
   if (options.restrictive)
