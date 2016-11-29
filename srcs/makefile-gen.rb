@@ -41,7 +41,7 @@ class ParseArgs
       
       # restrictive
       opts.on("-r", "--[no-]restrictive", "Add restrictive flags") do |v|
-        options.restrictive = true
+        options.restrictive = v
       end
 
       # Output executable type
