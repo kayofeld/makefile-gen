@@ -23,7 +23,7 @@ class ParseArgs
       opts.separator "Options:"
 
       # output name
-      opts.on("-o NAME", "--output Name", "Choose output name. Default = a.out") do |name|
+      opts.on("-o NAME", "--output Name", "Choose output name. Default = program") do |name|
         options.outputName = name
       end
 
