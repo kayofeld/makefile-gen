@@ -139,38 +139,34 @@ def write_makefile(options, parsed_folder)
   end
 
   ### BEGIN Compilation flags management
-  # BEGIN Adding the path of the lib as compilation flag
+  # Adding the path of the lib as compilation flag
   libPath = options.libPath
   if (libPath == "")
     text << "#{compile_flag_name} = -I#{parsed_folder.getLibPath}\n"
   else
     text << "#{compile_flag_name} = -I#{libPath}\n"
   end
-  # END Adding the path of the lib as compilation flag
 
-  # BEGIN Adding the custom flags to the compilation flags
+  # Adding the custom flags to the compilation flags
   options.flags.each do |flag|
     text << "#{compile_flag_name} += -#{flag}\n" 
   end
-  # END Adding the custom flags to the compilation flags
 
-  # BEGIN Adding the additionnal warning compilation flags
+  # Adding the additionnal warning compilation flags
   text << "#{compile_flag_name} += -W -Wall -Wextra\n"
-  # END Adding the additionnal warning compilation flags
 
-  # BEGIN Adding the werror restrictive compilation flag, transforming warning into errors
+  # Adding the werror restrictive compilation flag, transforming warning into errors
   if (options.restrictive)
     text << "#{compile_flag_name} += -Werror\n"
   end
-  # END Adding the werror restrictive compilation flag, transforming warning into errors
 
-  # BEGIN Flag handling for shared library compilation
+  # Flag handling for shared library compilation
   if (options.outputType == :lib)
     text << "LDFLAGS += -fpic -shared\n"
   end
-  # END Flag handling for shared library compilation
   ### END Compilation flags management
 
+  # Writing common Makefile lines to text
   text << "\nall: $(NAME)\n\n"
   text << "$(NAME): $(OBJS)\n"
   text << "\t $(CC) $(OBJS) -o $(NAME) $(LDFLAGS)\n\n"
