@@ -37,7 +37,6 @@ class ParseArgs
       opts.on("-l PATH", "--library PATH", "Choose library path. Default = autofind") do |path|
         options.libPath = path
       end
-
       
       # restrictive
       opts.on("-r", "--[no-]restrictive", "Add restrictive flags") do |v|
@@ -47,6 +46,7 @@ class ParseArgs
       # Output executable type
       opts.on("-t", "--type [TYPE]", [:lib, :executable],
               "Select output type (lib, executable)") do |t|
+        puts t
         options.outputType = t
       end
       
@@ -108,54 +108,83 @@ class ParseFolder
   
 end  # class ParseFolder
 
+### Function to write the Makefile with the parsed data
 def write_makefile(options, parsed_folder)
+
+  # BEGIN check which compilator to use
   if (parsed_folder.getCompilator == "g++")
     compile_flag_name = "CPPFLAGS"
   else
     compile_flag_name = "CFLAGS"
   end
+  # END check which compilator to use
+  
   text = ""
   text << "NAME\t= #{options.outputName}\n\n"
   text << "CC\t= #{parsed_folder.getCompilator}\n\n"
   text << "RM\t= rm -f\n\n"
   text << "SRCS\t= "
+  # Write the different sources paths after sources
   parsed_folder.getPaths().each do |path|
     text << path + " \\\n\t  "
   end
   text << "\n\n"
   text = text.gsub("\\\n\t  \n", "\n")
+
+  # Write compilator choice to the prepared text
   if (parsed_folder.getCompilator == "g++")
     text << "OBJS\t= $(SRCS:.cpp=.o)\n\n"
   else
     text << "OBJS\t= $(SRCS:.c=.o)\n\n"
   end
+
+  ### BEGIN Compilation flags management
+  # BEGIN Adding the path of the lib as compilation flag
   libPath = options.libPath
   if (libPath == "")
     text << "#{compile_flag_name} = -I#{parsed_folder.getLibPath}\n"
   else
     text << "#{compile_flag_name} = -I#{libPath}\n"
   end
+  # END Adding the path of the lib as compilation flag
+
+  # BEGIN Adding the custom flags to the compilation flags
   options.flags.each do |flag|
     text << "#{compile_flag_name} += -#{flag}\n" 
   end
+  # END Adding the custom flags to the compilation flags
+
+  # BEGIN Adding the additionnal warning compilation flags
   text << "#{compile_flag_name} += -W -Wall -Wextra\n"
+  # END Adding the additionnal warning compilation flags
+
+  # BEGIN Adding the werror restrictive compilation flag, transforming warning into errors
   if (options.restrictive)
     text << "#{compile_flag_name} += -Werror\n"
   end
-  if (options.outputType == "lib")
-    text << "#{compile_flag_name} += -fpic -shared"
+  # END Adding the werror restrictive compilation flag, transforming warning into errors
+
+  # BEGIN Flag handling for shared library compilation
+  if (options.outputType == :lib)
+    text << "LDFLAGS += -fpic -shared\n"
   end
+  # END Flag handling for shared library compilation
+  ### END Compilation flags management
+
   text << "\nall: $(NAME)\n\n"
   text << "$(NAME): $(OBJS)\n"
-  text << "\t $(CC) $(OBJS) -o $(NAME)\n\n"
+  text << "\t $(CC) $(OBJS) -o $(NAME) $(LDFLAGS)\n\n"
   text << "clean:\n"
   text << "\t$(RM) $(OBJS)\n\n"
   text << "fclean: clean\n"
   text << "\t$(RM) $(NAME)\n\n"
   text << "re: fclean all\n\n"
   text << ".PHONY: all clean fclean re\n"
+  
+  # Writing the result to Makefile file
   File.open("Makefile", 'w') { |file| file.write(text) }
-end
+  
+end # function write_makefile
 
 options = ParseArgs.parse(ARGV)
 parsed_folder = ParseFolder
