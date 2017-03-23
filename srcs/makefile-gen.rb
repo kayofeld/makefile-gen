@@ -69,18 +69,23 @@ class ParseFolder
     @pathes = []
     @compilator = ""
     @libPath = ""
-    extension = ""
+    @extension = ""
 
     # Find source files and define compilator
     Find.find('.') do |path|
       # Get sources paths
-      if ((path.end_with? ".c") || (path.end_with? ".cpp"))
-        if ((path.end_with? ".c") && extension == "")
-          extension = ".c"
+      if ((path.end_with? ".c") || (path.end_with? ".cpp") || (path.end_with? ".S") || (path.end_with? ".s"))
+        if ((path.end_with? ".c") && @extension == "")
+          @extension = ".c"
           @compilator = "gcc"
+        elsif ((path.end_with? ".S") || (path.end_with? ".s"))
+          if (@extension == "")
+            @extension = path[-2, 2]
+            @compilator = "nasm"
+          end
         else
-          if (extension == "")
-            extension = ".cpp"
+          if (@extension == "")
+            @extension = ".cpp"
             @compilator = "g++"
           end
         end
@@ -88,14 +93,22 @@ class ParseFolder
       end
 
       # Get lib paths
-      if (((path.end_with? ".h") || (path.end_with? ".hpp")) && @libPath == "")
-        @libPath = path.gsub(/\w*\.h/, "")
+      if (@libPath == "")
+        if (((path.end_with? ".h") || (path.end_with? ".hpp")) && @compilator != "nasm")
+          @libPath = path.gsub(/\w*\.h/, "")
+        elsif ((path.end_with? ".inc") && @compilator == "nasm")
+          @libPath = path.gsub(/\w*\.inc/, "")
+        end
       end
     end # find
   end  # parse()
 
   def self.getCompilator()
     return @compilator
+  end
+
+  def self.getExtension()
+    return @extension
   end
 
   def self.getPaths()
@@ -114,6 +127,8 @@ def write_makefile(options, parsed_folder)
   # BEGIN check which compilator to use
   if (parsed_folder.getCompilator == "g++")
     compile_flag_name = "CPPFLAGS"
+  elsif (parsed_folder.getCompilator == "nasm")
+    compile_flag_name = "ASFLAGS"
   else
     compile_flag_name = "CFLAGS"
   end
@@ -131,20 +146,22 @@ def write_makefile(options, parsed_folder)
   text << "\n\n"
   text = text.gsub("\\\n\t  \n", "\n")
 
-  # Write compilator choice to the prepared text
-  if (parsed_folder.getCompilator == "g++")
-    text << "OBJS\t= $(SRCS:.cpp=.o)\n\n"
-  else
-    text << "OBJS\t= $(SRCS:.c=.o)\n\n"
-  end
+  # Write file extension to the prepared text
+  text << "OBJS\t= $(SRCS:#{parsed_folder.getExtension}=.o)\n\n"
 
   ### BEGIN Compilation flags management
   # Adding the path of the lib as compilation flag
   libPath = options.libPath
+  incFlag = parsed_folder.getCompilator == "nasm" ? "-i" : "-I"
   if (libPath == "")
-    text << "#{compile_flag_name} = -I#{parsed_folder.getLibPath}\n"
+    text << "#{compile_flag_name} = #{incFlag} #{parsed_folder.getLibPath}\n"
   else
-    text << "#{compile_flag_name} = -I#{libPath}\n"
+    text << "#{compile_flag_name} = #{incFlag} #{libPath}\n"
+  end
+
+  # Adding the output format flag for asm
+  if (parsed_folder.getCompilator == "nasm")
+    text << "#{compile_flag_name} += -f elf64\n"
   end
 
   # Adding the custom flags to the compilation flags
@@ -153,23 +170,39 @@ def write_makefile(options, parsed_folder)
   end
 
   # Adding the additionnal warning compilation flags
-  text << "#{compile_flag_name} += -W -Wall -Wextra\n"
+  if (parsed_folder.getCompilator != "nasm")
+    text << "#{compile_flag_name} += -W -Wall -Wextra\n"
+  end
 
   # Adding the werror restrictive compilation flag, transforming warning into errors
-  if (options.restrictive)
+  if (parsed_folder.getCompilator != "nasm" && options.restrictive)
     text << "#{compile_flag_name} += -Werror\n"
   end
 
   # Flag handling for shared library compilation
   if (options.outputType == :lib)
-    text << "LDFLAGS += -fpic -shared\n"
+    if (parsed_folder.getCompilator == "nasm")
+      text << "\nLDFLAGS += -shared --export-dynamic -m elf_x86_64\n"
+    else
+      text << "\nLDFLAGS += -fpic -shared\n"
+    end
   end
   ### END Compilation flags management
 
   # Writing common Makefile lines to text
   text << "\nall: $(NAME)\n\n"
   text << "$(NAME): $(OBJS)\n"
-  text << "\t $(CC) $(OBJS) -o $(NAME) $(LDFLAGS)\n\n"
+  if (parsed_folder.getCompilator != "nasm")
+    text << "\t $(CC) $(OBJS) -o $(NAME) $(LDFLAGS)\n\n"
+  else
+    if (options.outputType == :lib)
+      text << "\t ld $(LDFLAGS) $(OBJS) -o $@ \n\n"
+    else
+      text << "\t gcc $(OBJS) -o $@\n\n"
+    end
+    text << "%.o: %#{parsed_folder.getExtension}\n"
+    text << "\t $(CC) $(ASFLAGS) $< -o $@\n\n"
+  end
   text << "clean:\n"
   text << "\t$(RM) $(OBJS)\n\n"
   text << "fclean: clean\n"
