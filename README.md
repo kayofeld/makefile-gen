@@ -15,6 +15,8 @@ getting usage
 $ makefile-gen -h
 ```
 
-## Authors
+## Author
 Paul Montague
+
+## Contributor
 Victorien Le Couviour--Tuffet
