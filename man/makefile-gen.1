@@ -1,12 +1,12 @@
 .TH MAKEFILE-GEN "1" "November 2016" "User Commands" "User Commands"
 .SH NAME
-makefile-gen \- generate C/C++ Makefiles
+makefile-gen \- generate C/C++/ASM(x86_64) Makefiles
 .SH SYNOPSIS
 .B makefile-gen [options]
 .TP
 .SH DESCRIPTION
 .PP
-Generate your makefile for your C/C++ projects
+Generate your makefile for your C/C++/nasm-x86_64 projects
 Options for this command allow you to change configuration of the Makefile, and the command is callable each time you add sources or want to change compilation flags
 .TP
 \fB-o, --output Name\fR
@@ -16,7 +16,7 @@ Choose output name. default is \(aqprogram\(aq
 Custom flags to add to compilation.
 .TP
 \fB-l, --library PATH\fR
-Choose library path. Default is found automaticly.
+Choose library path. Default is found automatically.
 .TP
 \fB-r, --[no-]restrictive\fR
 Add restrictive flags.
@@ -28,5 +28,5 @@ Select output type (lib/executable)
 Display help message
 .TP
 .PP
-.SH AUTHOR
-.B Created by Paul Montague
+.SH AUTHORS
+.B Created by Paul Montague and Victorien Le Couviour--Tuffet
