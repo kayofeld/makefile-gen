@@ -169,7 +169,7 @@ def write_makefile(options, parsed_folder)
 
   # Adding the additionnal warning compilation flags
   if (parsed_folder.getCompiler != "nasm")
-    text << "#{compile_flag_name} += -W -Wall -Wextra\n"
+    text << "#{compile_flag_name} += -Wall -Wextra\n"
   end
 
   # Adding the werror restrictive compilation flag, transforming warning into errors
