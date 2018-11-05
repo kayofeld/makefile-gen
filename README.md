@@ -1,5 +1,6 @@
 # makefile-gen
-makefile-gen is a ruby script helping you by generating your C/C++/ASM(x86_64) Makefiles
+makefile-gen is a makefile generator developped in ruby.
+It will be helping you by generating your basic C/C++/ASM(x86_64) Makefiles
 
 ### Installation
 
